@@ -1,3 +1,4 @@
+// external modules
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import cors from "cors";
@@ -6,6 +7,9 @@ import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 import { rateLimit } from "express-rate-limit";
+
+// internal modules
+import globalErrorHandler from "./controllers/errorController.js";
 
 const app: Express = express();
 
@@ -56,6 +60,9 @@ app.get("/health", (req, res) => {
 app.get("/", (req, res) => {
   res.send("Server is working properly!");
 });
+
+// passing all the errors to be handled
+app.use(globalErrorHandler);
 
 // 404 handler
 app.use((req, res) => {
