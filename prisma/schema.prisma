@@ -11,3 +11,98 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+
+model Organization {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employees    Employee[]
+  roles        Role[]
+  permissions  Permission[]
+}
+
+model Employee {
+  id             String   @id @default(cuid())
+  name           String
+  email          String   @unique
+  password       String
+
+  joiningDate    DateTime?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  roles          EmployeeRole[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([organizationId])
+}
+
+model Role {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  employees      EmployeeRole[]
+  permissions    RolePermission[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model Permission {
+  id             String   @id @default(cuid())
+
+  // NULL = System Permission
+  // Non-NULL = Custom Permission
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name           String
+  description    String?
+
+  roles          RolePermission[]
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+}
+
+model EmployeeRole {
+  employeeId String
+  roleId     String
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  role     Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([employeeId, roleId])
+
+  @@index([roleId])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+
+  @@index([permissionId])
+}
